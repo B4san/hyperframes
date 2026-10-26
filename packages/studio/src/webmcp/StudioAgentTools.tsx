@@ -80,6 +80,7 @@ export function StudioAgentTools() {
     handleGsapAddKeyframeBatch,
     handleGsapDeleteAnimation,
     getGsapAnimationsForSelection,
+    handleDomAttributeBatchCommit,
   } = useDomEditActionsContext();
 
   useEffect(() => {
@@ -179,6 +180,16 @@ export function StudioAgentTools() {
         multipleTimelines: gsapMultipleTimelines,
         unsupportedTimelinePattern: gsapUnsupportedTimelinePattern,
       }),
+      commitAttributes: (selection, operations, label) =>
+        handleDomAttributeBatchCommit(
+          selection,
+          operations.map((operation) => ({
+            type: "attribute",
+            property: operation.property,
+            value: operation.value,
+          })),
+          { label },
+        ),
     }),
     [
       getSnapshot,
@@ -198,6 +209,7 @@ export function StudioAgentTools() {
       handleGsapAddKeyframeBatch,
       handleGsapDeleteAnimation,
       getGsapAnimationsForSelection,
+      handleDomAttributeBatchCommit,
       domEditSelection,
       selectedGsapAnimations,
       gsapMultipleTimelines,

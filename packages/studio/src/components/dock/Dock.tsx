@@ -20,6 +20,7 @@ import { DockStripActions } from "./DockStripActions";
 import { DockTab } from "./DockTab";
 import { installTabFill } from "./dockTabFill";
 import { addRegisteredPanel, applySideMinimums, buildEditLayout } from "./dockLayout";
+import { buildEditorPageLayout, type EditorPageId } from "./editorPageLayout";
 import { DOCK_PANEL_COMPONENT, parseDockLayout } from "./dockLayoutSchema";
 import { useDockLayoutStore, type DockController, type DockSnapshot } from "./dockLayoutStore";
 import {
@@ -90,6 +91,12 @@ interface DockOptions {
   panels: readonly PanelId[];
   storageKey?: string | undefined;
   dockWidth: () => number;
+  projectId: string | null;
+}
+
+function rememberPage(page: EditorPageId, options: DockOptions) {
+  useDockLayoutStore.setState({ editorPage: page, pendingEditorPage: null });
+  writeStudioUiPreferences({ editorPage: page }, undefined, options.projectId, options.storageKey);
 }
 
 function createController(api: DockviewApi, options: DockOptions): DockController {
@@ -125,7 +132,14 @@ function createController(api: DockviewApi, options: DockOptions): DockControlle
     },
     setTitle: (id, title) => api.getPanel(id)?.api.setTitle(title),
     setGroupVisible: (id, visible) => api.getPanel(id)?.group.api.setVisible(visible),
-    reset: () => buildEditLayout(api, options.dockWidth(), options.panels),
+    reset: () => {
+      buildEditLayout(api, options.dockWidth(), options.panels);
+      rememberPage("edit", options);
+    },
+    applyPage: (page) => {
+      buildEditorPageLayout(page, api, options.dockWidth(), options.panels);
+      rememberPage(page, options);
+    },
   };
 }
 
@@ -175,7 +189,7 @@ function Root({
   const onReady = useCallback(
     ({ api }: DockviewReadyEvent) => {
       disposeRef.current();
-      const options = { panels, storageKey, dockWidth };
+      const options = { panels, storageKey, dockWidth, projectId };
       restoreOrBuild(api, projectId, options);
       applySideMinimums(api, dockWidth());
       const root = api.groups[0]?.element.closest<HTMLElement>(".hf-dock");
@@ -187,7 +201,9 @@ function Root({
       const store = useDockLayoutStore.getState();
       store.attach(createController(api, options), panels);
       store.sync(snapshot(api));
-      const pending = store.takePendingActivation();
+      const pendingPage = useDockLayoutStore.getState().takePendingEditorPage();
+      if (pendingPage) useDockLayoutStore.getState().controller?.applyPage(pendingPage);
+      const pending = useDockLayoutStore.getState().takePendingActivation();
       if (pending) api.getPanel(pending)?.api.setActive();
 
       let timer: ReturnType<typeof setTimeout> | undefined;

@@ -60,31 +60,33 @@ describe("buildElementAgentPrompt", () => {
       currentTime: 1.5,
       userInstruction: "Make this bigger",
     });
-    expect(prompt).toBe(
-      [
-        "## HyperFrames element edit request v1",
-        "Schema version: 1",
-        "",
-        "Make this bigger",
-        "",
-        "Composition: hero.html",
-        "Playback time: 00:01",
-        "Source file: hero.html",
-        "DOM id: headline-1",
-        "Selector: #headline-1",
-        "Selector index: 0",
-        "Tag: <div>",
-        "Bounds: x=10, y=20, width=300, height=40",
-        "Text: Hello world",
-        "",
-        "Guardrails:",
-        "- Make a targeted change to this element only, unless the request is a timeline edit.",
-        "- Preserve the rest of the composition and its timing, except what a timeline edit changes.",
-        "- Do not modify other elements' data-* attributes or positioning, except where the requested timeline edit requires it (split, retime, reorder, copy a group, swap media).",
-        "- For timeline edits (trim, split, speed, volume, copy, swap), use the `hyperframes timeline` edit commands (`hyperframes-cli` skill) or the exact attribute forms in the `hyperframes` skill's `references/format.md`.",
-        "- Prefer existing inline styles or existing CSS rules for this element over adding unrelated selectors.",
-      ].join("\n"),
-    );
+    const schema = [
+      "## HyperFrames element edit request v1",
+      "Schema version: 1",
+      "",
+      "Make this bigger",
+      "",
+      "Composition: hero.html",
+      "Playback time: 00:01",
+      "Source file: hero.html",
+      "DOM id: headline-1",
+      "Selector: #headline-1",
+      "Selector index: 0",
+      "Tag: <div>",
+      "Bounds: x=10, y=20, width=300, height=40",
+      "Text: Hello world",
+      "",
+      "Guardrails:",
+      "- Make a targeted change to this element only, unless the request is a timeline edit.",
+      "- Preserve the rest of the composition and its timing, except what a timeline edit changes.",
+      "- Do not modify other elements' data-* attributes or positioning, except where the requested timeline edit requires it (split, retime, reorder, copy a group, swap media).",
+      "- For timeline edits (trim, split, speed, volume, copy, swap), use the `hyperframes timeline` edit commands (`hyperframes-cli` skill) or the exact attribute forms in the `hyperframes` skill's `references/format.md`.",
+      "- Prefer existing inline styles or existing CSS rules for this element over adding unrelated selectors.",
+    ].join("\n");
+    expect(prompt.startsWith(schema)).toBe(true);
+    expect(prompt.slice(schema.length)).toContain("## Behavior guide");
+    expect(prompt).toContain("## Layout warnings");
+    expect(prompt).toContain("The HyperFrames desktop app stays published");
   });
 
   it("includes text fields, inline styles, computed styles and a target snippet when present", () => {
@@ -133,11 +135,14 @@ describe("buildAgentContextPreview", () => {
 describe("buildPickerAgentPrompt", () => {
   it("produces a plain comment prompt when nothing is selected", () => {
     const prompt = buildPickerAgentPrompt({ selection: null, userInstruction: "Add a border" });
-    expect(prompt).toBe(
-      ["## HyperFrames element edit request v1", "Schema version: 1", "", "Add a border"].join(
-        "\n",
+    expect(
+      prompt.startsWith(
+        ["## HyperFrames element edit request v1", "Schema version: 1", "", "Add a border"].join(
+          "\n",
+        ),
       ),
-    );
+    ).toBe(true);
+    expect(prompt).toContain("## Behavior guide");
   });
 
   it("produces identical shared-field text to buildElementAgentPrompt for equivalent input", () => {
@@ -158,7 +163,7 @@ describe("buildPickerAgentPrompt", () => {
       expect(domPrompt).toContain(line);
       expect(pickerPrompt).toContain(line);
     }
-    // Both end on the identical guardrails block, byte for byte.
+    // Both end on the same guardrails block plus the behavior guide.
     const guardrails = [
       "Guardrails:",
       "- Make a targeted change to this element only, unless the request is a timeline edit.",
@@ -167,8 +172,11 @@ describe("buildPickerAgentPrompt", () => {
       "- For timeline edits (trim, split, speed, volume, copy, swap), use the `hyperframes timeline` edit commands (`hyperframes-cli` skill) or the exact attribute forms in the `hyperframes` skill's `references/format.md`.",
       "- Prefer existing inline styles or existing CSS rules for this element over adding unrelated selectors.",
     ].join("\n");
-    expect(domPrompt.endsWith(guardrails)).toBe(true);
-    expect(pickerPrompt.endsWith(guardrails)).toBe(true);
+    expect(domPrompt).toContain(guardrails);
+    expect(pickerPrompt).toContain(guardrails);
+    const domTail = domPrompt.slice(domPrompt.indexOf("Guardrails:"));
+    const pickerTail = pickerPrompt.slice(pickerPrompt.indexOf("Guardrails:"));
+    expect(pickerTail).toBe(domTail);
   });
 
   it("surfaces the picker's label and media src — a host app has no DOM to read them from otherwise", () => {

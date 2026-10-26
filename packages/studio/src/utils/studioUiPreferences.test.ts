@@ -16,6 +16,15 @@ function createStorage(): Storage {
 }
 
 describe("studio UI preferences", () => {
+  it("remembers the editor page and drops an unknown one", () => {
+    const storage = createStorage();
+    writeStudioUiPreferences({ editorPage: "mix" }, storage);
+    expect(readStudioUiPreferences(storage).editorPage).toBe("mix");
+
+    storage.setItem("hf-studio-ui-preferences", JSON.stringify({ editorPage: "fusion" }));
+    expect(readStudioUiPreferences(storage).editorPage).toBeUndefined();
+  });
+
   it("merges preference patches into one localStorage entry", () => {
     const storage = createStorage();
 

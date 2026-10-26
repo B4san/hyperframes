@@ -6,6 +6,7 @@ import { trackStudioEvent } from "../utils/studioTelemetry";
 import { Button, buttonBase, buttonSizes, buttonVariants, cn, Tooltip } from "./ui";
 import { Dock } from "./dock/Dock";
 import { InspectorIcon } from "./icons/InspectorIcon";
+import { EditorPageBar } from "./EditorPageBar";
 import { OpenInDesktopButton } from "./OpenInDesktopButton";
 import { HyperframesLogo } from "./ui/HyperframesLogo";
 import { ShowThemeToggle, ThemeToggle } from "./ThemeToggle";
@@ -53,17 +54,18 @@ export const StudioHeader = memo(function StudioHeader({
   const ffmpegMissing = renderQueue.ffmpegMissing;
 
   return (
-    <div className="flex items-center justify-between h-10 px-3 bg-surface border-b border-border-strong shrink-0">
+    <div className="grid h-10 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 border-b border-border-strong bg-surface px-3">
       {/* Left: logo + project name */}
-      <div className="flex items-center gap-3">
+      <div className="flex min-w-0 items-center gap-3">
         <HyperframesLogo />
         <span className="text-text-5 select-none" aria-hidden="true">
           |
         </span>
-        <span className="text-step-11 font-medium text-text-1">{projectId}</span>
+        <span className="truncate text-step-11 font-medium text-text-1">{projectId}</span>
       </div>
+      <EditorPageBar />
       {/* Right: toolbar buttons */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-end gap-3">
         <div className="flex h-ctl items-center divide-x divide-border-strong overflow-hidden rounded-md border border-border-strong bg-bg-2">
           <Tooltip label={capturing ? "Capturing frame…" : "Capture current frame"} side="bottom">
             {/* A real download link, so it wears Button's recipe rather than being

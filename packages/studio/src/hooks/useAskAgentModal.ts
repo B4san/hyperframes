@@ -5,6 +5,8 @@ import { copyTextToClipboard } from "../utils/clipboard";
 import { readTagSnippetByTarget } from "../utils/sourcePatcher";
 import { toProjectAbsolutePath, type AgentModalAnchorPoint } from "../utils/studioHelpers";
 import { liveMarkupWithoutPreviewMarks } from "../utils/authoredSource";
+import { collectLayoutBoxes } from "../agentGuide/collectLayoutBoxes";
+import { reviewLayout } from "../agentGuide/layoutAdvisories";
 import { buildElementAgentPrompt, type DomEditSelection } from "../components/editor/domEditing";
 import { usePlayerStore } from "../player";
 import { studioApiFetch } from "../utils/studioApiFetch";
@@ -93,6 +95,7 @@ export function useAskAgentModal({
       const targetPath = domEditSelection.sourceFile || activeCompPath || "index.html";
       const tagSnippet =
         agentPromptTagSnippet ?? liveMarkupWithoutPreviewMarks(domEditSelection.element);
+      const sample = collectLayoutBoxes(domEditSelection.element.ownerDocument);
       const prompt = buildElementAgentPrompt({
         selection: domEditSelection,
         currentTime: usePlayerStore.getState().currentTime,
@@ -101,6 +104,7 @@ export function useAskAgentModal({
         selectionContext: agentPromptSelectionContext,
         userInstruction,
         sourceFilePath: toProjectAbsolutePath(projectDir, targetPath),
+        advisories: sample ? reviewLayout(sample.frame, sample.boxes) : [],
       });
 
       const copied = await copyTextToClipboard(prompt);

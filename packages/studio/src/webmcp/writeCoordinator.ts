@@ -9,7 +9,8 @@ export type StudioWriteOperation =
   | "add-animation"
   | "update-animation"
   | "add-keyframe"
-  | "delete-animation";
+  | "delete-animation"
+  | "edit";
 
 export const WRITE_RECEIPT_DESCRIPTION =
   "Read `stage` as the proof level: refused, dispatched, saved, verified, or failed. " +

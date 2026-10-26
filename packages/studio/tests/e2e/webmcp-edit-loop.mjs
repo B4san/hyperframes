@@ -431,6 +431,7 @@ async function runBrowserProof(page) {
         "studio_update_animation",
         "studio_add_keyframe",
         "studio_delete_animation",
+        "studio_edit",
       ].includes(definition.name),
   );
   for (const tool of writeTools) {

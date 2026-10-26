@@ -179,6 +179,7 @@ export function studioAgentToolsDeps(
       multipleTimelines: false,
       unsupportedTimelinePattern: false,
     }),
+    commitAttributes: async () => false,
     ...overrides,
   };
 }
