@@ -106,3 +106,10 @@ skills/                 → AI agent skill definitions
 
 - Docs: https://hyperframes.heygen.com/introduction
 - Catalog (50+ blocks): https://hyperframes.heygen.com/catalog/blocks/data-chart
+
+## Cursor Cloud specific instructions
+
+The Cloud Agent image already provides Bun 1.4.4, the pinned FFmpeg build `n8.0.1-66-g27b8d1a017` on `/usr/local/bin`, workspace dependencies, and a completed `bun run build`. Chrome headless shell 152.0.7977.30 is cached by `hyperframes browser ensure`.
+
+- Studio is started on boot with `bun run dev` at http://127.0.0.1:5190 and has no composition until a preview is attached. From this checkout, open a project with `node packages/cli/bin/hyperframes.mjs preview <project> --no-open` (port 3002 unless you pass `--port`). If http://127.0.0.1:5190 already responds, do not start a second `bun run dev`.
+- Git LFS fixtures are pulled during install. When `git status` lists only those media files and `git diff` is empty, leave them unstaged.
