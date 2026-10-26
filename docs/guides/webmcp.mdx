@@ -97,6 +97,7 @@ CSS selectors.
 | `studio_update_animation` | Changes a duration, ease or position |
 | `studio_add_keyframe` | Adds a keyframe to an animation |
 | `studio_delete_animation` | Removes an animation |
+| `studio_edit` | Trims, ripples, rolls, slips or slides a clip, or sets its speed, gain or color grade |
 
 Element writes run through the same commit actors Studio uses. When that actor forwards versioned
 durability evidence, the receipt names the source file and content version, and the edit enters the
@@ -107,7 +108,7 @@ same undo history. Actors without that evidence stay at `dispatched`.
 **Show intent, then address every write explicitly.** Before the first write to a target, call
 `studio_select` so the person in Studio sees the same selection box and inspector as the agent.
 Selection communicates intent; it does not grant write authority. `studio_set_text`,
-`studio_set_style`, `studio_transform`, and the animation tools still require that target's handle
+`studio_set_style`, `studio_transform`, `studio_edit`, and the animation tools still require that target's handle
 from `studio_look`, so a later human click cannot redirect an already-addressed write.
 
 **Read the receipt stage.** A write result separates acceptance from proof:

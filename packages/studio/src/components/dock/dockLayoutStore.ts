@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { EditorPageId } from "./editorPageLayout";
 import {
   PANEL_DEFINITIONS,
   PANEL_IDS,
@@ -18,6 +19,8 @@ export interface DockController {
   /** Hides or shows the panel's whole tab group without closing it. */
   setGroupVisible: (id: PanelId, visible: boolean) => void;
   reset: () => void;
+  /** Rebuilds the dock for one editor page. */
+  applyPage: (page: EditorPageId) => void;
 }
 
 export interface DockSnapshot {
@@ -37,15 +40,20 @@ interface DockLayoutState extends DockSnapshot {
   lastActive: LastActive;
   /** An activation requested before the dock mounted; Dock.Root applies it on ready. */
   pendingActivation: PanelId | null;
+  editorPage: EditorPageId;
+  /** A page click that arrived before the dock mounted. */
+  pendingEditorPage: EditorPageId | null;
   attach: (controller: DockController, panels?: readonly PanelId[]) => void;
   detach: () => void;
   sync: (snapshot: DockSnapshot) => void;
   takePendingActivation: () => PanelId | null;
+  takePendingEditorPage: () => EditorPageId | null;
   activatePanel: (id: PanelId) => void;
   closePanel: (id: PanelId) => void;
   togglePanel: (id: PanelId) => void;
   setZoneVisible: (zone: PanelZone, visible: boolean) => void;
   resetLayout: () => void;
+  applyEditorPage: (page: EditorPageId) => void;
 }
 
 export const useDockLayoutStore = create<DockLayoutState>((set, get) => ({
@@ -56,8 +64,10 @@ export const useDockLayoutStore = create<DockLayoutState>((set, get) => ({
   activePanel: null,
   lastActive: {},
   pendingActivation: null,
+  editorPage: "edit",
+  pendingEditorPage: null,
   attach: (controller, panels = PANEL_IDS) => set({ controller, panels }),
-  detach: () => set({ controller: null, lastActive: {} }),
+  detach: () => set({ controller: null, lastActive: {}, pendingEditorPage: null }),
   sync: (snapshot) =>
     set((state) => {
       const lastActive = { ...state.lastActive };
@@ -73,6 +83,11 @@ export const useDockLayoutStore = create<DockLayoutState>((set, get) => ({
     const { pendingActivation } = get();
     set({ pendingActivation: null });
     return pendingActivation;
+  },
+  takePendingEditorPage: () => {
+    const { pendingEditorPage } = get();
+    set({ pendingEditorPage: null });
+    return pendingEditorPage;
   },
   activatePanel: (id) => {
     const { controller } = get();
@@ -95,7 +110,22 @@ export const useDockLayoutStore = create<DockLayoutState>((set, get) => ({
       if (openPanels.has(id)) controller?.setGroupVisible(id, visible);
     }
   },
-  resetLayout: () => get().controller?.reset(),
+  resetLayout: () => {
+    const { controller } = get();
+    if (!controller) {
+      set({ editorPage: "edit", pendingEditorPage: "edit" });
+      return;
+    }
+    controller.reset();
+  },
+  applyEditorPage: (page) => {
+    const { controller } = get();
+    if (!controller) {
+      set({ editorPage: page, pendingEditorPage: page });
+      return;
+    }
+    controller.applyPage(page);
+  },
 }));
 
 /** The panel of `zone` the user is looking at: the last one focused if still showing, else any showing. */

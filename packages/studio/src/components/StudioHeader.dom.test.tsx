@@ -7,6 +7,7 @@
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { useDockLayoutStore } from "./dock/dockLayoutStore";
 import { buttonSizes, buttonVariants } from "./ui";
 import { isTypingTarget } from "../utils/typingTarget";
 import { shouldIgnorePlaybackShortcutTarget } from "../player/lib/playbackShortcuts";
@@ -198,6 +199,20 @@ it("shows no theme toggle and leaves the host's data-theme alone when embedded",
   const host = mount();
   expect(host.querySelector('[aria-label^="Switch to"]')).toBeNull();
   expect(document.documentElement.dataset.theme).toBe("host");
+});
+
+it("switches the editor page from the header", () => {
+  useDockLayoutStore.setState({ editorPage: "edit", pendingEditorPage: null, controller: null });
+  const host = mount();
+  const color = query(host, '[data-testid="editor-page-color"]');
+
+  expect(color.getAttribute("aria-selected")).toBe("false");
+  act(() => {
+    color.click();
+  });
+  expect(useDockLayoutStore.getState().editorPage).toBe("color");
+  expect(useDockLayoutStore.getState().pendingEditorPage).toBe("color");
+  useDockLayoutStore.setState({ editorPage: "edit", pendingEditorPage: null });
 });
 
 it("shows the theme toggle in Studio's own app", () => {

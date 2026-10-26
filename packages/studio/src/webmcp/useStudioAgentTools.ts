@@ -61,6 +61,13 @@ import {
   type TransformToolDeps,
 } from "./tools/transformTools";
 import {
+  studioEdit,
+  STUDIO_EDIT_DESCRIPTION,
+  STUDIO_EDIT_INPUT_SCHEMA,
+  type EditToolDeps,
+  type StudioEditResult,
+} from "./tools/editTools";
+import {
   studioAddAnimation,
   studioAddKeyframe,
   studioDeleteAnimation,
@@ -99,7 +106,8 @@ export interface StudioAgentToolsDeps
     InspectToolDeps,
     ContentToolDeps,
     TransformToolDeps,
-    AnimationToolDeps {
+    AnimationToolDeps,
+    EditToolDeps {
   /** Read Studio's current state. Called per tool invocation, never cached. */
   getSnapshot: () => StudioLookSnapshot;
 }
@@ -269,6 +277,16 @@ export function buildStudioTools(depsRef: {
       execute: writeTool<StudioDeleteAnimationResult>(
         "studio_delete_animation",
         (deps, input, signal) => studioDeleteAnimation(deps, input, signal),
+      ),
+    },
+    {
+      name: "studio_edit",
+      title: "Edit the timeline",
+      description: STUDIO_EDIT_DESCRIPTION,
+      inputSchema: STUDIO_EDIT_INPUT_SCHEMA,
+      annotations: { readOnlyHint: false, untrustedContentHint: true },
+      execute: writeTool<StudioEditResult>("studio_edit", (deps, input, signal) =>
+        studioEdit(deps, input, signal),
       ),
     },
   ];

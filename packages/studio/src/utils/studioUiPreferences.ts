@@ -1,5 +1,6 @@
 import { isPreviewQuality, type PreviewQuality } from "@hyperframes/core/preview-quality";
 import type { SerializedDockview } from "dockview-react";
+import { isEditorPageId, type EditorPageId } from "../components/dock/editorPageLayout";
 import { parseDockLayout } from "../components/dock/dockLayoutSchema";
 
 export type TimelineTimeDisplayMode = "time" | "frame";
@@ -47,6 +48,8 @@ export interface StudioUiPreferences {
   theme?: StudioTheme;
   /** The dock's serialized panel tree; parsed by `parseDockLayout` on read. */
   dockLayout?: SerializedDockview;
+  /** Which editor page was last applied. The dock tree itself is `dockLayout`. */
+  editorPage?: EditorPageId;
   linkedSelectionEnabled?: boolean;
   syncIndicatorsVisible?: boolean;
 }
@@ -161,6 +164,7 @@ function readStorage(storage: Storage | null, key: string): StudioUiPreferences 
     }
     const dockLayout = parseDockLayout(parsed.dockLayout);
     if (dockLayout) preferences.dockLayout = dockLayout;
+    if (isEditorPageId(parsed.editorPage)) preferences.editorPage = parsed.editorPage;
     return preferences;
   } catch {
     return {};
