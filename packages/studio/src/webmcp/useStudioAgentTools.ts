@@ -68,6 +68,18 @@ import {
   type StudioEditResult,
 } from "./tools/editTools";
 import {
+  studioGuide,
+  STUDIO_GUIDE_DESCRIPTION,
+  STUDIO_GUIDE_INPUT_SCHEMA,
+  type StudioGuide,
+} from "./tools/guideTools";
+import {
+  studioReview,
+  STUDIO_REVIEW_DESCRIPTION,
+  STUDIO_REVIEW_INPUT_SCHEMA,
+  type StudioReview,
+} from "./tools/reviewTools";
+import {
   studioAddAnimation,
   studioAddKeyframe,
   studioDeleteAnimation,
@@ -288,6 +300,24 @@ export function buildStudioTools(depsRef: {
       execute: writeTool<StudioEditResult>("studio_edit", (deps, input, signal) =>
         studioEdit(deps, input, signal),
       ),
+    },
+    {
+      name: "studio_guide",
+      title: "Read the behavior guide",
+      description: STUDIO_GUIDE_DESCRIPTION,
+      inputSchema: STUDIO_GUIDE_INPUT_SCHEMA,
+      annotations: { readOnlyHint: true },
+      execute: (): Promise<ToolResult<StudioGuide>> =>
+        runToolBody("studio_guide", async () => studioGuide()),
+    },
+    {
+      name: "studio_review",
+      title: "Review the frame",
+      description: STUDIO_REVIEW_DESCRIPTION,
+      inputSchema: STUDIO_REVIEW_INPUT_SCHEMA,
+      annotations: { readOnlyHint: true },
+      execute: (): Promise<ToolResult<StudioReview>> =>
+        runToolBody("studio_review", async () => studioReview(depsRef.current)),
     },
   ];
 }

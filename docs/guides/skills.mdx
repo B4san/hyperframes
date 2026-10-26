@@ -91,9 +91,15 @@ Install the skills from the root of the project you open in Antigravity:
 npx skills add heygen-com/hyperframes
 ```
 
-Select **Core Skills** and **Antigravity**. This uses Antigravity's supported
-project location, `.agents/skills`, and keeps the skills with the project. Start
-a fresh Antigravity conversation after installation.
+Select **Core Skills** and **Antigravity**. Antigravity reads `.agents/skills` in
+the project and `~/.gemini/antigravity-cli/skills` globally. `npx hyperframes skills update`
+links the installed skills into a project's `.agents/skills` when that folder is a
+HyperFrames project. Start a fresh Antigravity conversation after installation.
+
+If a harness cannot load skills, the browser editor still pastes the behavior
+guide into the agent prompt and exposes it as `studio_guide`. The same prompt
+carries layout warnings. Each warning is a choice: fix it, or leave it when the
+frame is meant to look that way.
 
 Antigravity also supports a global `~/.gemini/config/skills` directory. See
 Google's [current skills guide](https://antigravity.google/docs/skills?app=antigravity-ide)

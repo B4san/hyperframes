@@ -2,6 +2,8 @@
  * Agent prompt builder for HyperFrames element edit requests.
  */
 import type { HyperframePickerElementInfo } from "@hyperframes/core";
+import { agentPromptTail } from "../../agentGuide/promptTail";
+import type { LayoutAdvisory } from "../../agentGuide/layoutAdvisories";
 import { formatTime } from "../../player/lib/time";
 import type { DomEditSelection, DomEditTextField } from "./domEditingTypes";
 
@@ -98,6 +100,7 @@ export function buildElementAgentPrompt({
   userInstruction,
   sourceFilePath,
   timeline,
+  advisories,
 }: {
   selection: DomEditSelection;
   currentTime: number;
@@ -107,6 +110,8 @@ export function buildElementAgentPrompt({
   sourceFilePath?: string;
   /** The `formatTimelineBlock` text; omitted or empty when the timeline has no clips. */
   timeline?: string;
+  /** Layout observations. Empty means this frame had none. */
+  advisories?: readonly LayoutAdvisory[];
 }): string {
   const displayedSourceFile = sourceFilePath?.trim() || selection.sourceFile;
   const info: AgentPromptElementInfo = {
@@ -146,7 +151,7 @@ export function buildElementAgentPrompt({
     lines.push("", "Target HTML:", tagSnippet);
   }
 
-  lines.push("", ...GUARDRAIL_LINES);
+  lines.push("", ...GUARDRAIL_LINES, "", agentPromptTail(advisories));
 
   return lines.join("\n");
 }
@@ -172,14 +177,16 @@ export function buildAgentContextPreview(
 
 /**
  * Same convention as `buildElementAgentPrompt`, for a host app embedding only the player: built from
- * the runtime picker's own payload, not `DomEditSelection`. Null selection yields a bare prompt, no guardrails.
+ * the runtime picker's own payload, not `DomEditSelection`. Null selection still carries the behavior guide.
  */
 export function buildPickerAgentPrompt({
   selection,
   userInstruction,
+  advisories,
 }: {
   selection: HyperframePickerElementInfo | null;
   userInstruction?: string;
+  advisories?: readonly LayoutAdvisory[];
 }): string {
   const lines = [
     "## HyperFrames element edit request v1",
@@ -188,7 +195,10 @@ export function buildPickerAgentPrompt({
     userInstruction?.trim() || "Edit this selected HyperFrames element.",
   ];
 
-  if (!selection) return lines.join("\n");
+  if (!selection) {
+    lines.push("", agentPromptTail(advisories));
+    return lines.join("\n");
+  }
 
   const info: AgentPromptElementInfo = {
     id: selection.id,
@@ -206,6 +216,8 @@ export function buildPickerAgentPrompt({
     ...buildElementDetailLines(info),
     "",
     ...GUARDRAIL_LINES,
+    "",
+    agentPromptTail(advisories),
   );
 
   return lines.join("\n");

@@ -18,6 +18,7 @@ import {
   type SkillsCheckResult,
 } from "../utils/skillsManifest.js";
 import { mirrorGlobalSkills } from "../utils/skillsMirror.js";
+import { linkWorkspaceSkills } from "../utils/workspaceSkills.js";
 import { invalidateSkillsCache } from "../utils/skillsUpdateCheck.js";
 import { trackSkillsInstallSkipped } from "../telemetry/events.js";
 import type { Example } from "./_examples.js";
@@ -158,11 +159,24 @@ const SOURCES = [{ name: "HyperFrames", url: "https://github.com/heygen-com/hype
 // personal, company). No-op when nothing is attributed or the global store is
 // absent, so it's safe to run unconditionally after any install. Best-effort: a
 // mirror failure must not fail the install.
+function linkOpenProject(source: string | null, names: readonly string[]): void {
+  if (!source) return;
+  const { linked } = linkWorkspaceSkills({ cwd: process.cwd(), source, skills: names });
+  if (linked.length === 0) return;
+  const noun = linked.length === 1 ? "skill" : "skills";
+  diag.notice(
+    c.dim(
+      `Linked ${linked.length} ${noun} into this project's .agents/skills, which Antigravity reads.`,
+    ),
+  );
+}
+
 function mirrorToInstalledAgents(): void {
   try {
     const names = hyperframesSkillNames({ scope: "global" });
     if (names.length === 0) return;
-    const { mirrored, skipped } = mirrorGlobalSkills({ skills: names });
+    const { mirrored, skipped, source } = mirrorGlobalSkills({ skills: names });
+    linkOpenProject(source, names);
     const n = mirrored.length;
     if (n > 0) {
       // stderr (via diag): reachable from `skills update --json` (via installSkills)
